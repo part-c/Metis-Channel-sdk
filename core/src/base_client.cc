@@ -52,6 +52,7 @@ bool BaseClient::MakeCredentials(const ViaInfo& via_info)
 BaseClient::BaseClient(const ViaInfo& via_info, const string& taskid)
 {
 	task_id_ = taskid;
+	server_nid_ = via_info.id;
 	if(!MakeCredentials(via_info)){return;}
 	auto channel = grpc::CreateChannel(via_info.address, creds_);
 	stub_ = IoChannel::NewStub(channel);
@@ -60,6 +61,7 @@ BaseClient::BaseClient(const ViaInfo& via_info, const string& taskid)
 BaseClient::BaseClient(const NodeInfo& node_info, const string& taskid)
 {
 	task_id_ = taskid;
+	server_nid_ = node_info.id;
 	ViaInfo via_info;
 	via_info.address = node_info.via_address;
 	

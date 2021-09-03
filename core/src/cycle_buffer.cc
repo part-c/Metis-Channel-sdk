@@ -1,4 +1,4 @@
-#if USE_BUFFER
+// #if USE_BUFFER
 #include "cycle_buffer.h"
 
 #include <cstring>
@@ -240,4 +240,4 @@ int32_t cycle_buffer::write(const char* data, int32_t length) {
   timer_.start();
   return length;
 }
-#endif
+// #endif

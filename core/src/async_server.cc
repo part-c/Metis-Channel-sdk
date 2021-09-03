@@ -7,7 +7,7 @@
 #include <thread>
 #include <chrono>   
 using namespace chrono;
-
+extern string g_self_nodeid;
 void CallData::Proceed(void* ptr_save, void* ptr_mtx, void* ptr_cv)
 {
 	if (status_ == CREATE)
@@ -70,6 +70,10 @@ void CallData::Proceed(void* ptr_save, void* ptr_mtx, void* ptr_cv)
 		const string& data = request_.data();
 
 		#if USE_BUFFER
+			/*
+			gpr_log(GPR_DEBUG, "use buffer, Save data from nodeid:%s, data.size:%d", 
+    			nodeId.c_str(), (int)data.size());
+			*/
 			iter->second->buffer_->write(data.data(), data.size());
 		#else
 			const string& msgid = request_.id();

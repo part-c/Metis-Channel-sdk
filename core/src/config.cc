@@ -10,6 +10,8 @@ using namespace rapidjson;
 #include <set>
 #include <unistd.h>
 
+string g_self_nodeid;
+
 bool is_file_exist(const string& filepath) {
   if (filepath.empty())
     return false;

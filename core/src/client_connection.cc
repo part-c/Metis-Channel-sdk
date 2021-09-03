@@ -8,7 +8,7 @@ using namespace chrono;
 ClientConnection::ClientConnection(const string& nodeid) 
 {
   nodeid_ = nodeid;
-  buffer_ = make_shared<cycle_buffer>(1024 * 1024 * 50);
+  buffer_ = make_shared<cycle_buffer>(1024 * 1024 * 10);
 }
 
 ssize_t ClientConnection::recv(const string& id, char* data, uint64_t length, int64_t timeout) 

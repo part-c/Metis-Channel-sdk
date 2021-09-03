@@ -6,7 +6,7 @@
 #include <thread>
 #include <chrono>   
 using namespace chrono;
-
+extern string g_self_nodeid;
 AsyncClientCall::AsyncClientCall(const string& task_id, const string& remote_nodeid,
 		const SendRequest& request, CompletionQueue& cq_, 
 		std::unique_ptr<IoChannel::Stub>& stub_):AbstractAsyncClientCall()
@@ -32,12 +32,11 @@ void AsyncClient::SendReqAgain(const AbstractAsyncClientCall* call)
 }
 
 // Assembles the client's payload and sends it to the server.
-ssize_t AsyncClient::send(const string& self_nodeid, const string& remote_nodeid, 
-	  	const string& msg_id, const char* data, const size_t nLen, int64_t timeout)
+ssize_t AsyncClient::send(const string& msg_id, const char* data, const size_t nLen, int64_t timeout)
 {
 	SendRequest req_info;
 	// 发送客户端的nodeid到服务器
-	req_info.set_nodeid(self_nodeid);
+	req_info.set_nodeid(g_self_nodeid);
 
 #if USE_BUFFER
   	simple_buffer buffer(msg_id, data, nLen);
@@ -47,7 +46,7 @@ ssize_t AsyncClient::send(const string& self_nodeid, const string& remote_nodeid
  	req_info.set_data(data, nLen);
 #endif
 
-	AsyncClientCall* call = new AsyncClientCall(task_id_, remote_nodeid, req_info, cq_, stub_);
+	AsyncClientCall* call = new AsyncClientCall(task_id_, server_nid_, req_info, cq_, stub_);
 	
 	return nLen;
 }

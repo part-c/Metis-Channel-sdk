@@ -9,7 +9,7 @@ using namespace std;
 
 #include <rapidjson/document.h>
 using rapidjson::Document;
-
+extern string g_self_nodeid;
 struct Node 
 {
   string DESC;
@@ -204,3 +204,5 @@ static string get_file_contents(const string& fpath)
     buf.put(ch);
     return buf.str();
 }
+
+

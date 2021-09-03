@@ -37,11 +37,16 @@ for file_name in so_libs:
     shutil.copy(file_name, save_lib_dir)
 
 # gmssl
-if 'SSL_TYPE' in os.environ and os.environ['SSL_TYPE'] == '2':
-    print("start copy gmssl libraries.")
-    gmssl_so_libs = glob.glob('third_party/gmssl/lib/lib*.so.*')
-    for file_name in gmssl_so_libs:
-        shutil.copy(file_name, save_lib_dir)
+# if 'SSL_TYPE' in os.environ and os.environ['SSL_TYPE'] == '2':
+#     print("start copy gmssl libraries.")
+#     gmssl_so_libs = glob.glob('third_party/gmssl/lib/lib*.so.*')
+#     for file_name in gmssl_so_libs:
+#         shutil.copy(file_name, save_lib_dir)
+
+print("start copy gmssl libraries.")
+gmssl_so_libs = glob.glob('third_party/gmssl/lib/lib*.so.*')
+for file_name in gmssl_so_libs:
+    shutil.copy(file_name, save_lib_dir)
 
 cc_module_name = "grpc"
 build_ext_target = sub_dir_name + "/" + cc_module_name

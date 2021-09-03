@@ -51,6 +51,11 @@ class BasicIO {
     {
       _thread.detach();
     }
+#else
+    for(auto& _thread : vec_send_thread_)
+    {
+      _thread.detach();
+    }
 #endif
     // server_->close();
   };
@@ -77,6 +82,8 @@ class BasicIO {
 
 #if ASYNC_CLIENT
   vector<thread> clients_thread_;
+#else
+  vector<thread> vec_send_thread_;
 #endif
 
   map<string, shared_ptr<BaseClient>> nid_to_server_map_;

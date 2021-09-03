@@ -45,12 +45,17 @@ public:
     // Register the interface where the server node resides to via
     bool SignUpToVia(const NodeInfo& server_info);
 
-    virtual ssize_t send(const string& self_nodeid, const string& remote_nodeid, 
-        const string& msg_id, const char* data, const size_t nLen, int64_t timeout = -1L) = 0;
+    /*
+    virtual ssize_t send(const string& msg_id, const char* data, 
+        const size_t nLen, int64_t timeout = -1L) = 0;
+    */
+
+    virtual ssize_t send(const string& msg_id, const char* data, uint64_t length, int64_t timeout = -1L) = 0;
 
     virtual ~BaseClient(){}
 public:
 	string task_id_;
+    string server_nid_;
 protected:
     // Out of the passed in Channel comes the stub, stored here, our view of the
     // server's exposed services.

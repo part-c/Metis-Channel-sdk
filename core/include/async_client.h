@@ -42,8 +42,7 @@ public:
 
 	void SendReqAgain(const AbstractAsyncClientCall* call);
 	// Assembles the client's payload and sends it to the server.
-	ssize_t send(const string& self_nodeid, const string& remote_nodeid, 
-	  	const string& msg_id, const char* data, const size_t nLen, int64_t timeout = -1L);
+	ssize_t send(const string& msg_id, const char* data, const size_t nLen, int64_t timeout = -1L);
 
 	~AsyncClient(){cq_.Shutdown();}
 	void AsyncCompleteRpc();

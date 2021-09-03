@@ -12,7 +12,7 @@ using namespace chrono;
 BasicIO::BasicIO(const NodeInfo &node_info, const vector<ViaInfo>& server_infos,
     const vector<string>& client_nodeids, error_callback error_callback )
   : node_info_(node_info), via_server_infos_(server_infos), client_nodeids_(client_nodeids),
-    handler(error_callback) {}
+    handler(error_callback) {g_self_nodeid = node_info.id;}
 
 bool ViaNetIO::StartServer(const string& taskid, const NodeInfo& server_info,
     map<string, shared_ptr<ClientConnection>>* ptr_client_conn_map)
@@ -81,6 +81,7 @@ bool ViaNetIO::init(const string& taskid)
   }
   
   uint32_t nServerSize = via_server_infos_.size();
+  vec_send_thread_.resize(nServerSize);
   for (int i = 0; i < nServerSize; i++) 
   {
     string server_node_id =  via_server_infos_[i].id;
@@ -89,10 +90,16 @@ bool ViaNetIO::init(const string& taskid)
     clients_thread_.push_back(std::thread(&AsyncClient::AsyncCompleteRpc, nid_to_server_map_[server_node_id]));
     gpr_log(GPR_INFO, "init async client connect, sids: %s.", via_server_infos_[i].id.c_str()); 
 #else
-    nid_to_server_map_[server_node_id] = make_shared<SyncClient>(via_server_infos_[i], taskid);
+    shared_ptr<SyncClient> client_tmp = make_shared<SyncClient>(via_server_infos_[i], taskid);
+    nid_to_server_map_[server_node_id] = client_tmp;
     gpr_log(GPR_INFO, "init sync client connect, sids: %s.", via_server_infos_[i].id.c_str());
+    cout << "init sync client connect, sids: " << via_server_infos_[i].id << endl;
+    vec_send_thread_[i] = thread(&SyncClient::loop_send, client_tmp);
+    
+    // nid_to_server_map_[server_node_id] = make_shared<SyncClient>(via_server_infos_[i], taskid);
+    // gpr_log(GPR_INFO, "init sync client connect, sids: %s.", via_server_infos_[i].id.c_str());
+    // cout << "init sync client connect, sids: " << via_server_infos_[i].id << endl;
 #endif
-  
   }
 
   gpr_log(GPR_INFO, "init all network connections succeed!"); 
@@ -110,8 +117,7 @@ ssize_t ViaNetIO::recv(const string& remote_nodeid, const char* id, char* data,
 ssize_t ViaNetIO::send(const string& remote_nodeid, const char* id, const char* data, 
       uint64_t length, int64_t timeout) 
 {
-  ssize_t ret = nid_to_server_map_[remote_nodeid]->send(node_info_.id, remote_nodeid, 
-        id, data, length, timeout);
+  ssize_t ret = nid_to_server_map_[remote_nodeid]->send(id, data, length, timeout);
   gpr_log(GPR_DEBUG, "send data to %s succeed, id:%s, size:%ld.", remote_nodeid.c_str(), id, ret);
   return ret;
 }

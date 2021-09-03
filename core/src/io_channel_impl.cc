@@ -2,6 +2,8 @@
 #include "grpc_channel.h"
 #include <set>
 
+extern string g_self_nodeid;
+
 string IoChannelImpl::recv_msg(const string& node_id, const string& msg_id, uint64_t msg_len, 
         uint64_t timeout) 
 {
@@ -75,6 +77,6 @@ IChannel* IoChannelImpl::CreateIoChannel(const string& node_id, const string &co
     
   vector<string> clientNodeIds; 
   config->GetNodeInfos(clientNodeIds, serverInfos, node_id);
-
+  g_self_nodeid = node_id;
   return CreateViaChannel(node_info, config, serverInfos, clientNodeIds, error_cb);
 }

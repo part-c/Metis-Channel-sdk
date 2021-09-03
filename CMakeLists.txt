@@ -30,6 +30,12 @@ IF(USE_CACHE)
     add_definitions(-DUSE_CACHE=1)
 ENDIF()
 
+option(USE_BUFFER "" OFF)
+message(STATUS "[USE_BUFFER]: ${USE_BUFFER}")
+IF(USE_BUFFER)
+    add_definitions(-DUSE_BUFFER=1)
+ENDIF()
+
 option(MULTI_LOCKS "" OFF)
 message(STATUS "[MULTI_LOCKS]: ${MULTI_LOCKS}")
 IF(MULTI_LOCKS)
@@ -61,13 +67,13 @@ message(STATUS "_REFLECTION: ${_REFLECTION}")
 message(STATUS "_GRPC_GRPCPP: ${_GRPC_GRPCPP}")
 message(STATUS "_PROTOBUF_LIBPROTOBUF: ${_PROTOBUF_LIBPROTOBUF}")
 
-IF(SSL_TYPE MATCHES 2)
+# IF(SSL_TYPE MATCHES 2)
     # gmssl
     set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
     include_directories(${THIRD_PARTY_DIR}/gmssl/include)
     link_directories(${THIRD_PARTY_DIR}/gmssl/lib)
     link_libraries(tacrypto tassl)
-ENDIF()
+# ENDIF()
 
 # libraries
 file(GLOB_RECURSE srcs core/src/*.cc)

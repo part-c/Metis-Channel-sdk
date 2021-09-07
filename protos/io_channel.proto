@@ -3,7 +3,8 @@ package io_channel;
 option cc_enable_arenas = true;
 
 service IoChannel {
-    rpc Send(SendRequest) returns (RetCode) {}         // 发送消息
+    rpc Send(SendRequest) returns (RetCode) {}         // 发送单条数据
+    rpc SendStream(stream SendRequest) returns (RetCode) {}         // 发送流数据
 }
 
 message SendRequest {

@@ -37,6 +37,7 @@ using grpc::ServerContext;
 using grpc::ServerCompletionQueue;
 using grpc::CompletionQueue;
 using grpc::Status;
+using grpc::ByteBuffer;
 using io_channel::IoChannel;
 using io_channel::SendRequest;
 using io_channel::RetCode;
@@ -64,11 +65,12 @@ public:
     ServerContext ctx_;
     // What we get from the client.
     SendRequest request_;
-    // What we send back to the client.
+	// What we send back to the client.
     RetCode reply_;
 	// Let's implement a tiny state machine with the following states.
     enum CallStatus { CREATE, PROCESS, FINISH };
     CallStatus status_;  // The current serving state.
+	string nodeId_ = "";
 };
 
 class CallData: public CommonCallData
@@ -76,12 +78,14 @@ class CallData: public CommonCallData
 public:
 	using CommonCallData::CommonCallData;
 	CallData(IoChannel::AsyncService* service, ServerCompletionQueue* cq):
-		CommonCallData(service, cq), responder_(&ctx_){Proceed();}
+		CommonCallData(service, cq), reader_(&ctx_), responder_(&ctx_){Proceed();}
 
-	virtual void Proceed(void* ptr_save = nullptr, void* ptr_mtx = nullptr, void* ptr_cv = nullptr);
+	virtual void Proceed(void* ptr_save = nullptr, 
+		void* ptr_mtx = nullptr, void* ptr_cv = nullptr);
 
 private:
     ServerAsyncResponseWriter<RetCode> responder_;
+	ServerAsyncReader<RetCode, SendRequest> reader_;
 };
 
 class AsyncServer : public BaseServer

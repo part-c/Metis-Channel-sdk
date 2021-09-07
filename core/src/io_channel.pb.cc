@@ -77,13 +77,15 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 const char descriptor_table_protodef_io_5fchannel_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\020io_channel.proto\022\nio_channel\"7\n\013SendRe"
   "quest\022\016\n\006nodeid\030\001 \001(\t\022\n\n\002id\030\002 \001(\t\022\014\n\004dat"
-  "a\030\003 \001(\014\"\027\n\007RetCode\022\014\n\004code\030\001 \001(\0052C\n\tIoCh"
-  "annel\0226\n\004Send\022\027.io_channel.SendRequest\032\023"
-  ".io_channel.RetCode\"\000B\003\370\001\001b\006proto3"
+  "a\030\003 \001(\014\"\027\n\007RetCode\022\014\n\004code\030\001 \001(\0052\203\001\n\tIoC"
+  "hannel\0226\n\004Send\022\027.io_channel.SendRequest\032"
+  "\023.io_channel.RetCode\"\000\022>\n\nSendStream\022\027.i"
+  "o_channel.SendRequest\032\023.io_channel.RetCo"
+  "de\"\000(\001B\003\370\001\001b\006proto3"
   ;
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_io_5fchannel_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_io_5fchannel_2eproto = {
-  false, false, 194, descriptor_table_protodef_io_5fchannel_2eproto, "io_channel.proto", 
+  false, false, 259, descriptor_table_protodef_io_5fchannel_2eproto, "io_channel.proto", 
   &descriptor_table_io_5fchannel_2eproto_once, nullptr, 0, 2,
   schemas, file_default_instances, TableStruct_io_5fchannel_2eproto::offsets,
   file_level_metadata_io_5fchannel_2eproto, file_level_enum_descriptors_io_5fchannel_2eproto, file_level_service_descriptors_io_5fchannel_2eproto,

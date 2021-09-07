@@ -8,55 +8,113 @@
 #include <chrono>   
 using namespace chrono;
 extern string g_self_nodeid;
+// void CallData::Proceed(void* ptr_save, void* ptr_mtx, void* ptr_cv)
+// {
+// 	if (status_ == CREATE)
+// 	{
+// 		status_ = PROCESS;
+// 		service_->RequestSend(&ctx_, &request_, &responder_, cq_, cq_, this);
+// 	}
+// 	else if (status_ == PROCESS)
+// 	{
+// 		// cout << "thread id： " << std::this_thread::get_id() << endl;
+// 		new CallData(service_, cq_);
+// 		status_ = FINISH;
+// 		const string& nodeId = request_.nodeid();
+// 	#if MULTI_LOCKS
+// 		map<string, shared_ptr<mutex>>* ptr_map_mtx = static_cast<map<string, shared_ptr<mutex>>*>(ptr_mtx);
+// 		auto iter_mtx = ptr_map_mtx->find(nodeId);
+// 		if(iter_mtx == ptr_map_mtx->end())
+// 		{
+// 			reply_.set_code(RET_SUCCEED_CODE);
+// 			responder_.Finish(reply_, Status::OK, this);
+// 			return;
+// 		}
+// 		std::unique_lock<mutex> guard(*(*ptr_map_mtx)[nodeId]);
+// 	#else
+// 		std::unique_lock<mutex> guard(*static_cast<mutex*>(ptr_mtx));
+// 	#endif
+// 		// 返回值
+// 		reply_.set_code(RET_SUCCEED_CODE);
+// 		responder_.Finish(reply_, Status::OK, this);
+// 	#if USE_CACHE
+// 		#if MULTI_LOCKS
+// 			map<string, shared_ptr<queue<SendRequest>>>* ptr_map_send_queue = 
+// 				static_cast<map<string, shared_ptr<queue<SendRequest>>>*>(ptr_save);
+
+// 			map<string, shared_ptr<condition_variable>>* ptr_map_cv = 
+// 				static_cast<map<string, shared_ptr<condition_variable>>*>(ptr_cv);
+// 			// 缓存请求数据
+// 			(*ptr_map_send_queue)[nodeId]->push(request_);
+// 			// 通知处理线程
+// 			(*ptr_map_cv)[nodeId]->notify_all();
+// 		#else
+// 			queue<SendRequest>* ptr_send_queue = static_cast<queue<SendRequest>*>(ptr_save);
+// 			condition_variable* ptr_single_cv = static_cast<condition_variable*>(ptr_cv);
+// 			// 缓存请求数据
+// 			ptr_send_queue->push(request_);
+// 			// 通知处理线程
+// 			ptr_single_cv->notify_all();
+// 		#endif
+// 	#else
+// 		// 保存数据
+// 		map<string, shared_ptr<ClientConnection>>* ptr_client_conn_map = 
+// 			static_cast<map<string, shared_ptr<ClientConnection>>*>(ptr_save);
+// 		auto iter = ptr_client_conn_map->find(nodeId);
+// 		if(iter == ptr_client_conn_map->end())
+// 		{
+// 			gpr_log(GPR_ERROR, "Invalid nodeID:%s, server received invalid data.", nodeId.c_str());
+// 			return;
+// 		}
+// 		// The msgid is already included in the data  
+// 		const string& data = request_.data();
+
+// 		#if USE_BUFFER
+// 			/*
+// 			gpr_log(GPR_DEBUG, "use buffer, Save data from nodeid:%s, data.size:%d", 
+//     			nodeId.c_str(), (int)data.size());
+// 			*/
+// 			iter->second->buffer_->write(data.data(), data.size());
+// 		#else
+// 			const string& msgid = request_.id();
+// 			iter->second->write(msgid, data);
+// 			/*
+// 			gpr_log(GPR_DEBUG, "Save data from nodeid:%s, msgid:%s, data.size:%d", 
+//     			nodeId.c_str(), msgid.c_str(), (int)data.size());
+// 			*/
+// 		#endif
+// 	#endif
+// 	}
+	// else
+	// {
+	// 	delete this;
+	// }
+// }
+
 void CallData::Proceed(void* ptr_save, void* ptr_mtx, void* ptr_cv)
 {
 	if (status_ == CREATE)
 	{
 		status_ = PROCESS;
-		service_->RequestSend(&ctx_, &request_, &responder_, cq_, cq_, this);
+		// service_->RequestSend(&ctx_, &request_, &responder_, cq_, cq_, this);
+		service_->RequestSendStream(&ctx_, &reader_, cq_, cq_, this);
 	}
 	else if (status_ == PROCESS)
 	{
-		// cout << "thread id： " << std::this_thread::get_id() << endl;
-		new CallData(service_, cq_);
-		status_ = FINISH;
-		const string& nodeId = request_.nodeid();
-	#if MULTI_LOCKS
-		map<string, shared_ptr<mutex>>* ptr_map_mtx = static_cast<map<string, shared_ptr<mutex>>*>(ptr_mtx);
-		auto iter_mtx = ptr_map_mtx->find(nodeId);
-		if(iter_mtx == ptr_map_mtx->end())
+		reader_.Read(&request_, this);
+		string nodeId = request_.nodeid();
+		if(nodeId.empty()) return;
+		
+		// if(nodeId != nodeId_)
 		{
+			nodeId_ = nodeId;
+			new CallData(service_, cq_);
+			status_ = FINISH;
+			// 返回值
 			reply_.set_code(RET_SUCCEED_CODE);
-			responder_.Finish(reply_, Status::OK, this);
-			return;
+			reader_.Finish(reply_, Status::OK, this);
 		}
-		std::unique_lock<mutex> guard(*(*ptr_map_mtx)[nodeId]);
-	#else
-		std::unique_lock<mutex> guard(*static_cast<mutex*>(ptr_mtx));
-	#endif
-		// 返回值
-		reply_.set_code(RET_SUCCEED_CODE);
-		responder_.Finish(reply_, Status::OK, this);
-	#if USE_CACHE
-		#if MULTI_LOCKS
-			map<string, shared_ptr<queue<SendRequest>>>* ptr_map_send_queue = 
-				static_cast<map<string, shared_ptr<queue<SendRequest>>>*>(ptr_save);
-
-			map<string, shared_ptr<condition_variable>>* ptr_map_cv = 
-				static_cast<map<string, shared_ptr<condition_variable>>*>(ptr_cv);
-			// 缓存请求数据
-			(*ptr_map_send_queue)[nodeId]->push(request_);
-			// 通知处理线程
-			(*ptr_map_cv)[nodeId]->notify_all();
-		#else
-			queue<SendRequest>* ptr_send_queue = static_cast<queue<SendRequest>*>(ptr_save);
-			condition_variable* ptr_single_cv = static_cast<condition_variable*>(ptr_cv);
-			// 缓存请求数据
-			ptr_send_queue->push(request_);
-			// 通知处理线程
-			ptr_single_cv->notify_all();
-		#endif
-	#else
+		
 		// 保存数据
 		map<string, shared_ptr<ClientConnection>>* ptr_client_conn_map = 
 			static_cast<map<string, shared_ptr<ClientConnection>>*>(ptr_save);
@@ -83,7 +141,10 @@ void CallData::Proceed(void* ptr_save, void* ptr_mtx, void* ptr_cv)
     			nodeId.c_str(), msgid.c_str(), (int)data.size());
 			*/
 		#endif
-	#endif
+	}
+	else
+	{
+	//	delete this;
 	}
 }
 

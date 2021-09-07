@@ -5,9 +5,8 @@
 #include "simple_buffer.h"
 #include <iostream>
 #include <mutex>
-using grpc::Status;
-using grpc::ClientContext;
 using grpc::CompletionQueue;
+using grpc::ClientWriter;
 using namespace std;
 
 /*
@@ -22,14 +21,15 @@ public:
 	~SyncClient(){flush_send_buffer();}
 
 	void loop_send();
-	ssize_t put_into_send_buffer(const char* data, size_t len, int64_t timeout = -1L);
+	ssize_t put_into_send_buffer(const string& msg_id, const char* data, size_t len);
 	void flush_send_buffer();
-	ssize_t send(const char* data, size_t len, int64_t timeout = 100 * 100000);
+	// ssize_t send(const SendRequest& req, int64_t timeout = 100 * 100000);
 	ssize_t send(const string& msg_id, const char* data, uint64_t length, int64_t timeout = -1L);
   	// ssize_t recv(const string& id, string& data, int64_t timeout = -1L);
 
 private:
 	shared_ptr<cycle_buffer> send_buffer_ = nullptr;
+	vector<SendRequest> vec_send_req_;
 	std::mutex send_buffer_mtx_;
 	std::condition_variable send_buffer_cv_;
 };

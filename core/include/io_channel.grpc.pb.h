@@ -42,11 +42,21 @@ class IoChannel final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::io_channel::RetCode>> PrepareAsyncSend(::grpc::ClientContext* context, const ::io_channel::SendRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::io_channel::RetCode>>(PrepareAsyncSendRaw(context, request, cq));
     }
+    std::unique_ptr< ::grpc::ClientWriterInterface< ::io_channel::SendRequest>> SendStream(::grpc::ClientContext* context, ::io_channel::RetCode* response) {
+      return std::unique_ptr< ::grpc::ClientWriterInterface< ::io_channel::SendRequest>>(SendStreamRaw(context, response));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::io_channel::SendRequest>> AsyncSendStream(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::io_channel::SendRequest>>(AsyncSendStreamRaw(context, response, cq, tag));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::io_channel::SendRequest>> PrepareAsyncSendStream(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::io_channel::SendRequest>>(PrepareAsyncSendStreamRaw(context, response, cq));
+    }
     class async_interface {
      public:
       virtual ~async_interface() {}
       virtual void Send(::grpc::ClientContext* context, const ::io_channel::SendRequest* request, ::io_channel::RetCode* response, std::function<void(::grpc::Status)>) = 0;
       virtual void Send(::grpc::ClientContext* context, const ::io_channel::SendRequest* request, ::io_channel::RetCode* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void SendStream(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::ClientWriteReactor< ::io_channel::SendRequest>* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -54,6 +64,9 @@ class IoChannel final {
   private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::io_channel::RetCode>* AsyncSendRaw(::grpc::ClientContext* context, const ::io_channel::SendRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::io_channel::RetCode>* PrepareAsyncSendRaw(::grpc::ClientContext* context, const ::io_channel::SendRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientWriterInterface< ::io_channel::SendRequest>* SendStreamRaw(::grpc::ClientContext* context, ::io_channel::RetCode* response) = 0;
+    virtual ::grpc::ClientAsyncWriterInterface< ::io_channel::SendRequest>* AsyncSendStreamRaw(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncWriterInterface< ::io_channel::SendRequest>* PrepareAsyncSendStreamRaw(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -65,11 +78,21 @@ class IoChannel final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::io_channel::RetCode>> PrepareAsyncSend(::grpc::ClientContext* context, const ::io_channel::SendRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::io_channel::RetCode>>(PrepareAsyncSendRaw(context, request, cq));
     }
+    std::unique_ptr< ::grpc::ClientWriter< ::io_channel::SendRequest>> SendStream(::grpc::ClientContext* context, ::io_channel::RetCode* response) {
+      return std::unique_ptr< ::grpc::ClientWriter< ::io_channel::SendRequest>>(SendStreamRaw(context, response));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncWriter< ::io_channel::SendRequest>> AsyncSendStream(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncWriter< ::io_channel::SendRequest>>(AsyncSendStreamRaw(context, response, cq, tag));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncWriter< ::io_channel::SendRequest>> PrepareAsyncSendStream(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncWriter< ::io_channel::SendRequest>>(PrepareAsyncSendStreamRaw(context, response, cq));
+    }
     class async final :
       public StubInterface::async_interface {
      public:
       void Send(::grpc::ClientContext* context, const ::io_channel::SendRequest* request, ::io_channel::RetCode* response, std::function<void(::grpc::Status)>) override;
       void Send(::grpc::ClientContext* context, const ::io_channel::SendRequest* request, ::io_channel::RetCode* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void SendStream(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::ClientWriteReactor< ::io_channel::SendRequest>* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -83,7 +106,11 @@ class IoChannel final {
     class async async_stub_{this};
     ::grpc::ClientAsyncResponseReader< ::io_channel::RetCode>* AsyncSendRaw(::grpc::ClientContext* context, const ::io_channel::SendRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::io_channel::RetCode>* PrepareAsyncSendRaw(::grpc::ClientContext* context, const ::io_channel::SendRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientWriter< ::io_channel::SendRequest>* SendStreamRaw(::grpc::ClientContext* context, ::io_channel::RetCode* response) override;
+    ::grpc::ClientAsyncWriter< ::io_channel::SendRequest>* AsyncSendStreamRaw(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncWriter< ::io_channel::SendRequest>* PrepareAsyncSendStreamRaw(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_Send_;
+    const ::grpc::internal::RpcMethod rpcmethod_SendStream_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -92,6 +119,7 @@ class IoChannel final {
     Service();
     virtual ~Service();
     virtual ::grpc::Status Send(::grpc::ServerContext* context, const ::io_channel::SendRequest* request, ::io_channel::RetCode* response);
+    virtual ::grpc::Status SendStream(::grpc::ServerContext* context, ::grpc::ServerReader< ::io_channel::SendRequest>* reader, ::io_channel::RetCode* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_Send : public BaseClass {
@@ -113,7 +141,27 @@ class IoChannel final {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_Send<Service > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_SendStream : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_SendStream() {
+      ::grpc::Service::MarkMethodAsync(1);
+    }
+    ~WithAsyncMethod_SendStream() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status SendStream(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::io_channel::SendRequest>* /*reader*/, ::io_channel::RetCode* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestSendStream(::grpc::ServerContext* context, ::grpc::ServerAsyncReader< ::io_channel::RetCode, ::io_channel::SendRequest>* reader, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncClientStreaming(1, context, reader, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_Send<WithAsyncMethod_SendStream<Service > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_Send : public BaseClass {
    private:
@@ -141,7 +189,29 @@ class IoChannel final {
     virtual ::grpc::ServerUnaryReactor* Send(
       ::grpc::CallbackServerContext* /*context*/, const ::io_channel::SendRequest* /*request*/, ::io_channel::RetCode* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_Send<Service > CallbackService;
+  template <class BaseClass>
+  class WithCallbackMethod_SendStream : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_SendStream() {
+      ::grpc::Service::MarkMethodCallback(1,
+          new ::grpc::internal::CallbackClientStreamingHandler< ::io_channel::SendRequest, ::io_channel::RetCode>(
+            [this](
+                   ::grpc::CallbackServerContext* context, ::io_channel::RetCode* response) { return this->SendStream(context, response); }));
+    }
+    ~WithCallbackMethod_SendStream() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status SendStream(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::io_channel::SendRequest>* /*reader*/, ::io_channel::RetCode* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerReadReactor< ::io_channel::SendRequest>* SendStream(
+      ::grpc::CallbackServerContext* /*context*/, ::io_channel::RetCode* /*response*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_Send<WithCallbackMethod_SendStream<Service > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_Send : public BaseClass {
@@ -156,6 +226,23 @@ class IoChannel final {
     }
     // disable synchronous version of this method
     ::grpc::Status Send(::grpc::ServerContext* /*context*/, const ::io_channel::SendRequest* /*request*/, ::io_channel::RetCode* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_SendStream : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_SendStream() {
+      ::grpc::Service::MarkMethodGeneric(1);
+    }
+    ~WithGenericMethod_SendStream() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status SendStream(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::io_channel::SendRequest>* /*reader*/, ::io_channel::RetCode* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -181,6 +268,26 @@ class IoChannel final {
     }
   };
   template <class BaseClass>
+  class WithRawMethod_SendStream : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_SendStream() {
+      ::grpc::Service::MarkMethodRaw(1);
+    }
+    ~WithRawMethod_SendStream() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status SendStream(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::io_channel::SendRequest>* /*reader*/, ::io_channel::RetCode* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestSendStream(::grpc::ServerContext* context, ::grpc::ServerAsyncReader< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* reader, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncClientStreaming(1, context, reader, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithRawCallbackMethod_Send : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
@@ -201,6 +308,28 @@ class IoChannel final {
     }
     virtual ::grpc::ServerUnaryReactor* Send(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_SendStream : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_SendStream() {
+      ::grpc::Service::MarkMethodRawCallback(1,
+          new ::grpc::internal::CallbackClientStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, ::grpc::ByteBuffer* response) { return this->SendStream(context, response); }));
+    }
+    ~WithRawCallbackMethod_SendStream() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status SendStream(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::io_channel::SendRequest>* /*reader*/, ::io_channel::RetCode* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerReadReactor< ::grpc::ByteBuffer>* SendStream(
+      ::grpc::CallbackServerContext* /*context*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_Send : public BaseClass {

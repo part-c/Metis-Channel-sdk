@@ -23,6 +23,7 @@ namespace io_channel {
 
 static const char* IoChannel_method_names[] = {
   "/io_channel.IoChannel/Send",
+  "/io_channel.IoChannel/SendStream",
 };
 
 std::unique_ptr< IoChannel::Stub> IoChannel::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -33,6 +34,7 @@ std::unique_ptr< IoChannel::Stub> IoChannel::NewStub(const std::shared_ptr< ::gr
 
 IoChannel::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
   : channel_(channel), rpcmethod_Send_(IoChannel_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_SendStream_(IoChannel_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::CLIENT_STREAMING, channel)
   {}
 
 ::grpc::Status IoChannel::Stub::Send(::grpc::ClientContext* context, const ::io_channel::SendRequest& request, ::io_channel::RetCode* response) {
@@ -58,6 +60,22 @@ void IoChannel::Stub::async::Send(::grpc::ClientContext* context, const ::io_cha
   return result;
 }
 
+::grpc::ClientWriter< ::io_channel::SendRequest>* IoChannel::Stub::SendStreamRaw(::grpc::ClientContext* context, ::io_channel::RetCode* response) {
+  return ::grpc::internal::ClientWriterFactory< ::io_channel::SendRequest>::Create(channel_.get(), rpcmethod_SendStream_, context, response);
+}
+
+void IoChannel::Stub::async::SendStream(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::ClientWriteReactor< ::io_channel::SendRequest>* reactor) {
+  ::grpc::internal::ClientCallbackWriterFactory< ::io_channel::SendRequest>::Create(stub_->channel_.get(), stub_->rpcmethod_SendStream_, context, response, reactor);
+}
+
+::grpc::ClientAsyncWriter< ::io_channel::SendRequest>* IoChannel::Stub::AsyncSendStreamRaw(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncWriterFactory< ::io_channel::SendRequest>::Create(channel_.get(), cq, rpcmethod_SendStream_, context, response, true, tag);
+}
+
+::grpc::ClientAsyncWriter< ::io_channel::SendRequest>* IoChannel::Stub::PrepareAsyncSendStreamRaw(::grpc::ClientContext* context, ::io_channel::RetCode* response, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncWriterFactory< ::io_channel::SendRequest>::Create(channel_.get(), cq, rpcmethod_SendStream_, context, response, false, nullptr);
+}
+
 IoChannel::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       IoChannel_method_names[0],
@@ -69,6 +87,16 @@ IoChannel::Service::Service() {
              ::io_channel::RetCode* resp) {
                return service->Send(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      IoChannel_method_names[1],
+      ::grpc::internal::RpcMethod::CLIENT_STREAMING,
+      new ::grpc::internal::ClientStreamingHandler< IoChannel::Service, ::io_channel::SendRequest, ::io_channel::RetCode>(
+          [](IoChannel::Service* service,
+             ::grpc::ServerContext* ctx,
+             ::grpc::ServerReader<::io_channel::SendRequest>* reader,
+             ::io_channel::RetCode* resp) {
+               return service->SendStream(ctx, reader, resp);
+             }, this)));
 }
 
 IoChannel::Service::~Service() {
@@ -77,6 +105,13 @@ IoChannel::Service::~Service() {
 ::grpc::Status IoChannel::Service::Send(::grpc::ServerContext* context, const ::io_channel::SendRequest* request, ::io_channel::RetCode* response) {
   (void) context;
   (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status IoChannel::Service::SendStream(::grpc::ServerContext* context, ::grpc::ServerReader< ::io_channel::SendRequest>* reader, ::io_channel::RetCode* response) {
+  (void) context;
+  (void) reader;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }

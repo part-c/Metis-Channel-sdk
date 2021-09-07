@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
         channel->Send(serNodeId.c_str(), send_msg_id.c_str(), send_data.c_str(), 
             send_data.size(), timeout);
     }
+    sleep(10);
     
     return 0;
 }

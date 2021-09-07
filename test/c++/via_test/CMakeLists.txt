@@ -47,13 +47,14 @@ message(STATUS "_REFLECTION: ${_REFLECTION}")
 message(STATUS "_GRPC_GRPCPP: ${_GRPC_GRPCPP}")
 message(STATUS "_PROTOBUF_LIBPROTOBUF: ${_PROTOBUF_LIBPROTOBUF}")
 
-IF(USE_GMSSL)
-    ### use gmssl
-    set(THIRD_PARTY_DIR ${project_path}/third_party)
-    include_directories(${THIRD_PARTY_DIR}/gmssl/include)
-    link_directories(${THIRD_PARTY_DIR}/gmssl/lib)
-    link_libraries(tacrypto tassl)
-ENDIF()
+
+# IF(USE_GMSSL)
+#     ### use gmssl
+#     set(THIRD_PARTY_DIR ${project_path}/third_party)
+#     include_directories(${THIRD_PARTY_DIR}/gmssl/include)
+#     link_directories(${THIRD_PARTY_DIR}/gmssl/lib)
+#     link_libraries(tacrypto tassl)
+# ENDIF()
 
 link_libraries(${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF})
 # libraries

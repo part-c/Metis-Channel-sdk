@@ -23,7 +23,7 @@ public:
 	void loop_send();
 	ssize_t put_into_send_buffer(const string& msg_id, const char* data, size_t len);
 	void flush_send_buffer();
-	// ssize_t send(const SendRequest& req, int64_t timeout = 100 * 100000);
+	ssize_t send(const SendRequest& req, int64_t timeout = 100 * 100000);
 	ssize_t send(const string& msg_id, const char* data, uint64_t length, int64_t timeout = -1L);
   	// ssize_t recv(const string& id, string& data, int64_t timeout = -1L);
 

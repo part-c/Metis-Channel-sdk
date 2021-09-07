@@ -14,44 +14,44 @@ SyncClient::SyncClient(const ViaInfo& via_info, const string& taskid):
 SyncClient::SyncClient(const NodeInfo& node_info, const string& taskid):
   BaseClient(node_info, taskid){}
 
-// ssize_t SyncClient::send(const SendRequest& req, int64_t timeout) 
-// {
-//   RetCode ret_code;
-//   auto start_time = system_clock::now();
-//   auto end_time   = start_time;
-//   int64_t elapsed = 0;
-//   system_clock::time_point deadline = start_time + std::chrono::milliseconds(timeout);
-//   do {
-//     grpc::ClientContext context;
-//     // 添加注册到via的参数
-//     // context.AddMetadata("node_id", remote_nodeid);
-//     context.AddMetadata("task_id", task_id_);
-//     context.AddMetadata("party_id", server_nid_);
+ssize_t SyncClient::send(const SendRequest& req, int64_t timeout) 
+{
+  RetCode ret_code;
+  auto start_time = system_clock::now();
+  auto end_time   = start_time;
+  int64_t elapsed = 0;
+  system_clock::time_point deadline = start_time + std::chrono::milliseconds(timeout);
+  do {
+    grpc::ClientContext context;
+    // 添加注册到via的参数
+    // context.AddMetadata("node_id", remote_nodeid);
+    context.AddMetadata("task_id", task_id_);
+    context.AddMetadata("party_id", server_nid_);
 
-//     // 设置阻塞等待和超时时间
-//     context.set_wait_for_ready(true);
-//     context.set_deadline(deadline);
-//     Status status = stub_->Send(&context, req, &ret_code);
+    // 设置阻塞等待和超时时间
+    context.set_wait_for_ready(true);
+    context.set_deadline(deadline);
+    Status status = stub_->Send(&context, req, &ret_code);
 
-//     if (status) 
-//     {
-//       break;
-//     } 
-//     else 
-//     {
-//       end_time = system_clock::now();
-//       elapsed = duration_cast<duration<int64_t, std::milli>>(end_time - start_time).count();
+    if (status.ok()) 
+    {
+      break;
+    } 
+    else 
+    {
+      end_time = system_clock::now();
+      elapsed = duration_cast<duration<int64_t, std::milli>>(end_time - start_time).count();
 
-//       if(elapsed >= timeout)
-//       {
-//           gpr_log(GPR_ERROR, "Send request timeout:%ld.", timeout);
-//           return 0;
-//       }
-//     }
-//   } while(true);
+      if(elapsed >= timeout)
+      {
+          gpr_log(GPR_ERROR, "Send request timeout:%ld.", timeout);
+          return 0;
+      }
+    }
+  } while(true);
 	
-// 	return len;
-// }
+	return 0;
+}
 
 void SyncClient::loop_send()
 {
@@ -66,50 +66,11 @@ void SyncClient::loop_send()
       return false;
     });
 
-    int64_t timeout = 100 * 100000;
-    RetCode ret_code;
-    auto start_time = system_clock::now();
-    auto end_time   = start_time;
-    int64_t elapsed = 0;
-    system_clock::time_point deadline = start_time + std::chrono::milliseconds(timeout);
-    do {
-      grpc::ClientContext context;
-      // 添加注册到via的参数
-      context.AddMetadata("task_id", task_id_);
-      context.AddMetadata("party_id", server_nid_);
-
-      // 设置阻塞等待和超时时间
-      // context.set_wait_for_ready(true);
-      // context.set_deadline(deadline);
-      std::unique_ptr<ClientWriter<SendRequest>> send_writer(
-          stub_->SendStream(&context, &ret_code));
-
-      for(const SendRequest& seq : vec_send_req_)
-      {
-        // if(!send_writer->Write(seq))
-        //   break;
-        send_writer->Write(seq);
-      }
-      send_writer->WritesDone();
-      Status status = send_writer->Finish();
-      if (status.ok()) 
-      {
-        cout << "send succeed" << endl;
-        break;
-      } 
-      else 
-      {
-        end_time = system_clock::now();
-        elapsed = duration_cast<duration<int64_t, std::milli>>(end_time - start_time).count();
-
-        if(elapsed >= timeout)
-        {
-            gpr_log(GPR_ERROR, "Send request timeout:%ld.", timeout);
-            break;
-        }
-      }
-    } while(true);
-
+    for(const SendRequest& seq : vec_send_req_)
+    {
+      send(seq);
+    }
+    
     vec_send_req_.clear();
     send_buffer_cv_.notify_all();
   }
